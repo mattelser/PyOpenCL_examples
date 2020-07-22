@@ -78,19 +78,52 @@ class SineOfTheTimes(object):
                         out_gpu,
                         origin=(0,0),
                         region=(self.WIDTH, self.HEIGHT))
-        self.frames += 1
         # self.queue.finish() if is_blocking=False in enqueue_copy
         return out
+
+    def run(self):
+        fps = 0
+        window = cv2.namedWindow("sine of the times")
+        arr = np.zeros((self.HEIGHT, self.WIDTH, 4), np.uint8)
+        cv2.imshow(window, arr)
+        cv2.waitKey(1)
+        while True:
+            fpsClockStart = time.time()
+            frames = 0
+            for _ in range(30):
+                arr = self.getFrame()
+                frames += 1
+
+                # make text easier to read by using
+                # white text with black border, i.e.
+
+                cv2.putText(arr,
+                            f'fps: {fps:.2f}',
+                            (10,self.HEIGHT-10),
+                            cv2.FONT_HERSHEY_PLAIN,
+                            1,
+                            (0, 0, 0),
+                            4)
+                cv2.putText(arr,
+                            f'fps: {fps:.2f}',
+                            (10,self.HEIGHT-10),
+                            cv2.FONT_HERSHEY_PLAIN,
+                            1,
+                            (255, 255, 255),
+                            1)
+
+                # check if the window has been closed
+                # and exit if so
+                if cv2.getWindowProperty(window, cv2.WND_PROP_VISIBLE) < 1:
+                    return
+                cv2.imshow(window, arr)
+                k = cv2.waitKey(1)
+                if k == 27:
+                    # escape key has been pressed
+                    return
+            fps = frames / (time.time() - fpsClockStart)
 
 
 if __name__ == "__main__":
     sot = SineOfTheTimes()
-    try:
-        while True:
-            for _ in range(30):
-                arr = sot.getFrame()
-                cv2.imshow("foo", arr)
-                cv2.waitKey(1)
-            print(f"fps: {sot.frames / (time.time() - sot.startTime)}")
-    finally:
-        print(f"fps: {sot.frames/(time.time() - sot.startTime)}")
+    sot.run()
